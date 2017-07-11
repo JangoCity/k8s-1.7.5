@@ -11,7 +11,7 @@
 + kubelet TLS BootStrapping、kubedns、dashboard、heapster(influxdb、grafana)、EFK (elasticsearch、fluentd、kibana) 插件
 + 私有 docker registry，使用 ceph rgw 后端存储，TLS + HTTP Basic 认证
 ## 软件包自行下载
-
+```
 [root@node71 ~/install/pkg]# tree /root/install/pkg/
 /root/install/pkg/
 ├── cfssl
@@ -26,7 +26,7 @@
 │   └── flannel-v0.8.0-rc1-linux-amd64.tar.gz
 └── kubernetes
     └── kubernetes-server-linux-amd64.tar.gz
-
+```
 4 directories, 8 files
 ## 集群机器
 + 192.168.61.71
