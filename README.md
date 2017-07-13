@@ -4,28 +4,99 @@
 + linux kernel 3.10.0-514.16.1.el7.x86_64
 + kubernetes 1.7.0
 + docker version 1.12.6, build 3a094bd/1.12.6
-+ etcd 3.2.0
++ etcdctl version: 3.2.1 API version: 2
 + Flanneld 0.7.1 vxlan 网络
 + TLS 认证通信相关组件，(如etcd、kubernetes master 和 node)
 + RBAC 授权
 + kubelet TLS BootStrapping、kubedns、dashboard、heapster(influxdb、grafana)、EFK (elasticsearch、fluentd、kibana) 插件
 + 私有 docker registry，使用 ceph rgw 后端存储，TLS + HTTP Basic 认证
-## 软件包自行下载
+## 安装目录结构
 ```
-[root@node71 ~/install/pkg]# tree /root/install/pkg/
-/root/install/pkg/
-├── cfssl
+[root@node71 ~]# tree install/
+install/
+├── pkg
 │   ├── cfssl
-│   ├── cfssl-certinfo
-│   └── cfssljson
-├── etcd
+│   │   ├── bin
+│   │   │   ├── cfssl
+│   │   │   ├── cfssl-certinfo
+│   │   │   └── cfssljson
+│   │   └── config
+│   │       ├── admin-csr.json
+│   │       ├── ca-config.json
+│   │       ├── ca-csr.json
+│   │       ├── kube-proxy-csr.json
+│   │       └── kubernetes-csr.json
 │   ├── etcd
-│   └── etcdctl
-├── flanneld
-│   ├── flannel-0.7.1-1.el7.x86_64.rpm
-│   └── flannel-v0.8.0-rc1-linux-amd64.tar.gz
-└── kubernetes
-    └── kubernetes-server-linux-amd64.tar.gz
+│   │   ├── bin
+│   │   │   ├── etcd
+│   │   │   └── etcdctl
+│   │   └── config
+│   │       ├── etcd.conf
+│   │       └── etcd.service
+│   ├── flanneld
+│   │   ├── bin
+│   │   │   ├── flannel-0.7.1-1.el7.x86_64.rpm
+│   │   │   └── flannel-v0.8.0-rc1-linux-amd64.tar.gz
+│   │   └── config
+│   │       └── flanneld
+│   └── kubernetes
+│       ├── bin
+│       │   └── kubernetes-server-linux-amd64.tar.gz
+│       └── config
+│           ├── apiserver
+│           ├── config
+│           ├── controller-manager
+│           ├── kube-apiserver.service
+│           ├── kube-controller-manager.service
+│           ├── kubelet
+│           ├── kubelet.service
+│           ├── kube-proxy.service
+│           ├── kube-scheduler.service
+│           ├── proxy
+│           └── scheduler
+├── shell
+│   ├── 00-env.sh
+│   ├── 01-mkssl.sh
+│   ├── 02-etcd.sh
+│   ├── 03-kube-master.sh
+│   ├── 04-flanneld.sh
+│   ├── 05-kube-node.sh
+│   └── kube-config.sh
+└── yml
+    ├── 01-kubedns
+    │   ├── kubedns-cm.yaml
+    │   ├── kubedns-controller.yaml
+    │   ├── kubedns-sa.yaml
+    │   └── kubedns-svc.yaml
+    ├── 02-dashboard
+    │   ├── dashboard-controller.yaml
+    │   ├── dashboard-rbac.yaml
+    │   └── dashboard-service.yaml
+    ├── 03-heapster
+    │   ├── grafana-deployment.yaml
+    │   ├── grafana-service.yaml
+    │   ├── heapster-deployment.yaml
+    │   ├── heapster-rbac.yaml
+    │   ├── heapster-service.yaml
+    │   ├── influxdb-cm.yaml
+    │   ├── influxdb-deployment.yaml
+    │   └── influxdb-service.yaml
+    ├── 04-ingress
+    │   ├── default-backend.yml
+    │   ├── nginx-ingress-controller-rbac.yml
+    │   ├── nginx-ingress-controller-service.yml
+    │   └── nginx-ingress-controller.yml
+    ├── 05-efk
+    │   ├── es-controller.yaml
+    │   ├── es-rbac.yaml
+    │   ├── es-service.yaml
+    │   ├── fluentd-es-ds.yaml
+    │   ├── fluentd-es-rbac.yaml
+    │   ├── kibana-controller.yaml
+    │   └── kibana-service.yaml
+    └── 06-domain
+
+21 directories, 60 files
 ```
 4 directories, 8 files
 ## 集群机器
@@ -36,80 +107,13 @@
 + 192.168.61.75
 + 192.168.61.76
 
-## 集群环境变量
+## 安装脚本
 ```
-###################################
-## set global env                ##
-###################################
-
-# Currently deployed machines IP
-CURRENT_IP=$(ip add|sed -nr 's#.*inet (.*)/24.*global (.*$)#\1#gp'|head -n 1)
-k8s_basedir=$HOME/install
-
-# 建议用 未用的网段 来定义服务网段和 Pod 网段
-# 服务网段 (Service CIDR），部署前路由不可达，部署后集群内使用 IP:Port 可达
-SERVICE_CIDR="10.254.0.0/16"
-
-# POD 网段 (Cluster CIDR），部署前路由不可达，**部署后**路由可达 (flanneld 保证)
-CLUSTER_CIDR="172.30.0.0/16"
-
-# 服务端口范围 (NodePort Range)
-NODE_PORT_RANGE="10000-35000"
-
-# flanneld 网络配置前缀
-FLANNEL_ETCD_PREFIX="/kubernetes/network"
-
-# 集群 DNS 服务 IP (从 SERVICE_CIDR 中预分配)
-CLUSTER_DNS_SVC_IP="10.254.0.2"
-
-# 集群 DNS 域名
-CLUSTER_DNS_DOMAIN="cluster.local."
-
-
-###################################
-## etcd 配置                     ##
-###################################
-NODE_NAME=$(hostname|awk -F"." '{print $1}') # 当前部署的机器名称(随便定义，只要能区分不同机器即可)
-NODE_IPS="192.168.61.71 192.168.61.72 192.168.61.73" # etcd 集群所有机器 IP
-## etcd 集群各机器名称和对应的IP、端口
-ETCD_NODES=node71=https://192.168.61.71:2380,node72=https://192.168.61.72:2380,node73=https://192.168.61.73:2380
-
-## etcd 集群服务地址列表
-ETCD_ENDPOINTS="https://192.168.61.71:2379,https://192.168.61.72:2379,https://192.168.61.73:2379"
-
-###################################
-# etcd 环境
-###################################
-etcd_pkg_dir=$k8s_basedir/pkg/etcd
-etcd_config_dir=$k8s_basedir/config/etcd
-
-###################################
-## ssl 环境                      ##
-###################################
-k8s_ssl_pkg=$k8s_basedir/pkg/cfssl
-k8s_ssl_config=$k8s_basedir/config/cfssl
-k8s_ssl_workdir=$k8s_basedir/ssl_work
-
-###################################
-## kubernetes 环境               ##
-###################################
-public_config=$k8s_basedir/config/kubernetes/
-KUBE_APISERVER=https://192.168.61.71:6443 # kubelet 访问的 kube-apiserver 的地址
-kube_pkg_dir=$k8s_basedir/pkg/kubernetes
-kube_tar_file=$kube_pkg_dir/kubernetes-server-linux-amd64.tar.gz
-kube_serive=$public_config/server
-kube_client=$public_config/client
-
-###################################
-## flanneld 环境                 ##
-###################################
-flanneld_pkg_dir=$k8s_basedir/pkg/flanneld
-flanneld_rpm_file=$flanneld_pkg_dir/flannel-0.7.1-1.el7.x86_64.rpm
-flanneld_config_dir=$k8s_basedir/config/flanneld
-NET_INTERFACE_NAME=eno16777984
+[root@node71 ~/install/shell]# ls
+00-env.sh  01-mkssl.sh  02-etcd.sh  03-kube-master.sh  04-flanneld.sh  05-kube-node.sh  kube-config.sh
 ```
 
-# 1. 创建 TLS 证书和秘钥
+# 1. 创建 TLS 证书和秘钥(在一个管理节点运行，其他节点拷贝即可)
 kubernetes 系统各组件需要使用 TLS 证书对通信进行加密，本文档使用 CloudFlare 的 PKI 工具集 cfssl 来生成 Certificate Authority (CA) 和其它证书。
 
 生成的 CA 证书和秘钥文件如下：
@@ -510,6 +514,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 # vi /etc/sysconfig/docker
 将如下配置
 OPTIONS='--selinux-enabled --log-driver=journald --signature-verification=false'
+OPTIONS='--signature-verification=false --storage-driver=overlay2'
 修改为：
 OPTIONS='--selinux-enabled --log-driver=json-file --signature-verification=false'
 重启docker服务后，生效

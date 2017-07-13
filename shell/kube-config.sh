@@ -2,15 +2,14 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-# import global env
-ENVFILE=./00-globalenv.sh
+ENVFILE=./00-env.sh
+
+# env
 if [ -f $ENVFILE ];then
   . $ENVFILE
 else
-echo -e "\033[40;31m ############################# \033[5m"
-echo -e "\033[40;31m ##   $ENVFILE not found!   ## \033[0m"
-echo -e "\033[40;31m ############################# \033[0m"
-exit 
+  echo "$ENVFILE not found!"
+  exit
 fi
 
 TYPE=$1
@@ -18,6 +17,7 @@ if [ $# -ne 1 ];then
   echo "usage: $0 { kubectl | kubelet | kube-proxy }"
   exit 1
 fi
+
 
 # get token
 New_TOKEN=$(head -c 16 /dev/urandom | od -An -t x | tr -d ' ')

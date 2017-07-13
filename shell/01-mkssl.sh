@@ -1,74 +1,56 @@
 #!/bin/bash -x
-# author: felix-zh
-# e-mail: faer615@gmail.com
+# author: yantao
 
-# import global env
-ENVFILE=./00-globalenv.sh
+ENVFILE=./00-env.sh
+
+# env
 if [ -f $ENVFILE ];then
   . $ENVFILE
 else
-echo -e "\033[40;31m ############################# \033[5m"
-echo -e "\033[40;31m ##   $ENVFILE not found!   ## \033[0m"
-echo -e "\033[40;31m ############################# \033[0m"
-exit 
+  echo "$ENVFILE not found!"
+  exit
 fi
 
 current_timestamp=`date +%Y%m%d%H%M%S`
 
-if test -d $k8s_ssl_workdir;then
-  mv $k8s_ssl_workdir $k8s_ssl_workdir.$current_timestamp
+if test -d $ssl_work_dir;then
+  mv $ssl_work_dir $ssl_dir.$current_timestamp
 fi
-mkdir -p $k8s_ssl_workdir && cd $k8s_ssl_workdir || (echo "$k8s_ssl_workdir not exist";exit 1)
-export PATH="$PATH:$k8s_basedir/pkg/cfssl"
 
-# check ssl file
+mkdir -p $ssl_work_dir && cd $ssl_work_dir || (echo "$ssl_dir not exist";exit 1)
+export PATH=$PATH:$ssl_bin_dir
+
+# check bin file exist
 for i in cfssl cfssljson cfssl-certinfo;do
-  test ! -f $k8s_ssl_pkg/$i && echo "file $k8s_basedir/pkg/cfssl/$i not found!" && exit 1
+  test ! -f $ssl_bin_dir/$i && echo "file $ssl_bin_dir/$i not found!" && exit 1
 done
 
-# check ssl config file
+# check config file exist
 for i in ca-config.json kubernetes-csr.json admin-csr.json kube-proxy-csr.json;do
-  test ! -f $k8s_ssl_config/$i && echo "file $k8s_ssl_config/$i not found!" && exit 1
+  test ! -f $ssl_config_dir/$i && echo "file $ssl_config_dir/$i not found!" && exit 1
 done
 
-# create ssl
-## create CA
-cfssl gencert -initca $k8s_ssl_config/ca-csr.json | cfssljson -bare ca
+# create
+## create ca
+cfssl gencert -initca $ssl_config_dir/ca-csr.json | cfssljson -bare ca
 
 ## create kubernetes
-cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=$k8s_ssl_config/ca-config.json -profile=kubernetes $k8s_ssl_config/kubernetes-csr.json | cfssljson -bare kubernetes
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=$ssl_config_dir/ca-config.json -profile=kubernetes $ssl_config_dir/kubernetes-csr.json | cfssljson -bare kubernetes
 
 ## create admin
-cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=$k8s_ssl_config/ca-config.json -profile=kubernetes $k8s_ssl_config/admin-csr.json | cfssljson -bare admin
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=$ssl_config_dir/ca-config.json -profile=kubernetes $ssl_config_dir/admin-csr.json | cfssljson -bare admin
 
 ## create kube-proxy
-cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=$k8s_ssl_config/ca-config.json -profile=kubernetes $k8s_ssl_config/kube-proxy-csr.json | cfssljson -bare kube-proxy
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=$ssl_config_dir/ca-config.json -profile=kubernetes $ssl_config_dir/kube-proxy-csr.json | cfssljson -bare kube-proxy
 
-# deploy ssl-key
-echo -e "\033[32m Deploy SSL KEY FILE to /etc/kubernetes/ssl \033[0m"
+# deploy ssl key files
+echo -e "\e[32mDeploy SSL KEY FILE to /etc/kubernetes/ssl \e[0m"
 if test ! -f /etc/kubernetes/ssl;then
-   mkdir -p /etc/kubernetes/ssl
-   \cp $k8s_ssl_workdir/*.pem /etc/kubernetes/ssl
-else
-echo -e "\033[40;31m ################################ \033[5m"
-echo -e "\033[40;31m ##  SSL KEY FILE is exists !  ## \033[5m"
-echo -e "\033[40;31m ################################ \033[0m"
+   mkdir -p /etc/kubernetes/ssl && \cp $ssl_work_dir/*.pem /etc/kubernetes/ssl
 fi
 
 ## create admin client key
 cd /etc/kubernetes/ssl
-openssl pkcs12 -export -in admin.pem -inkey admin-key.pem -out k8s-admin.p12
-
-echo -e "\033[32m ############################################ \033[0m"
-echo -e "\033[32m ##   admin-certificate create Success !   ## \033[0m"
-echo -e "\033[32m ############################################ \033[0m"
-
-#echo -n "Do you Deploy SSL KEY FILE to /etc/kubernetes/ssl??? [Y/enter N] "
-# read flag
-#if [ "X$flag" == "XY" ];then
-#  test ! -f /etc/kubernetes/ssl && mkdir -p /etc/kubernetes/ssl
-#  \cp $k8s_ssl_workdir/*.pem /etc/kubernetes/ssl
-#fi
-
-# copy token csv
-# cp $k8s_ssl_config/token.csv /etc/kubernetes
+openssl pkcs12 -export -in admin.pem -inkey admin-key.pem -out /etc/kubernetes/web-cret.p12
+echo -e "\e[33mCreate web-cert key file to /etc/kubernetes \e[0m"
+echo "                                    "
