@@ -102,7 +102,7 @@ crm status
 
 # 第二种方式通过pcs进行配置：
 pcs resource create pcs-vip ocf:heartbeat:IPaddr2 ip=192.168.61.100 cidr_netmask=24 nic=eno16777984 op monitor interval=15s
-
+pcs resource create apiserver systemd:kube-apiserver op monitor interval="5s"
 pcs resource create haproxy systemd:haproxy op monitor interval="5s"
 pcs constraint colocation add pcs-vip haproxy INFINITY  
 pcs constraint order pcs-vip then haproxy
@@ -118,3 +118,9 @@ pcs resource delete crm-vip
 #2.4 验证集群高可用
 #可以自行试验，重启任意主机，看是否VIP切换到其他节点：
 ip a
+
+# 2.5 资源迁移
+pcs resource  move apiserver node71.ityunv.com
+
+# 2.6 设备备用节点
+pcs cluster standby node72.ityunv.com
