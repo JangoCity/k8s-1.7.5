@@ -1,0 +1,5 @@
+错误信息
+Registration of the rkt container factory failed: unable to communicate with Rkt api service: rkt: cannot tcp Dial rkt api service: dial tcp [::1]:15441: getsockopt: connection refused
+
+Jul 14 16:47:55 node74 kubelet: W0714 16:47:55.713903    3008 helpers.go:771] eviction manager: no observation found for eviction signal allocatableNodeFs.available
+

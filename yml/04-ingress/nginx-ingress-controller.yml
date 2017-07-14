@@ -2,7 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: nginx-ingress-controller
-  namespace: nginx-ingress 
+  namespace: kube-system 
 spec:
   replicas: 2
   selector:
