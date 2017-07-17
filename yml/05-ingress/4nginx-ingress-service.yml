@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: nginx-ingress
   namespace: kube-system
+  labels:
+    k8s-app: nginx-ingress_Service
+    kubernetes.io/cluster-service: 'true'
+    #kubernetes.io/name: nginx-ingress
 spec:
 # Can also use LoadBalancer type
   type: NodePort

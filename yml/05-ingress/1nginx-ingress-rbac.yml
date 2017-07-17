@@ -1,18 +1,24 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: nginx-ingress
+apiVersion: v1  
+kind: Namespace  
+metadata:  
+  name: nginx-ingress  
+  labels:
+    k8s-app: nginx-ingress_Namespace
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: nginx-ingress-serviceaccount
   namespace: kube-system
+  labels:
+    k8s-app: nginx-ingress-serviceaccount
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
   name: nginx-ingress-clusterrole
+  labels:
+    k8s-app: nginx-ingress-clusterrole
 rules:
   - apiGroups:
       - ""
