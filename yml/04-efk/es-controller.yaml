@@ -22,7 +22,7 @@ spec:
     spec:
       serviceAccountName: elasticsearch
       containers:
-      - image: registry.chinadaas.com/kubernetes/elasticsearch:v2.4.1-2
+      - image: registry.chinadaas.com/kubernetes/elasticsearch:v2.4.1-2 
         name: elasticsearch-logging
         resources:
           # need more cpu upon initialization, therefore burstable class
@@ -47,4 +47,8 @@ spec:
               fieldPath: metadata.namespace
       volumes:
       - name: es-persistent-storage
-        emptyDir: {}
+        hostPath:
+          path: /data/elasticsearch-data 
+      - name: plugins
+        hostPath:
+          path: /data/plugins

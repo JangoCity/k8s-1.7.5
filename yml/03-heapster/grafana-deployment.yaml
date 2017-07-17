@@ -38,10 +38,8 @@ spec:
         - name: GF_SERVER_ROOT_URL
           # If you're only using the API Server proxy, set this value instead:
           #value: /api/v1/proxy/namespaces/kube-system/services/monitoring-grafana/
-          #value: /
           value: /api/v1/namespaces/kube-system/services/monitoring-grafana/proxy
       volumes:
       - name: grafana-storage
-        emptyDir: {}
-      #imagePullSecrets:
-      #- name: registry-secret
+        hostPath:
+          path: /var/lib/monitoring-grafana-data
