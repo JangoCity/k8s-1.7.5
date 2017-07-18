@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 # author: felix-zh
 # e-mail: faer615@gmail.com
 

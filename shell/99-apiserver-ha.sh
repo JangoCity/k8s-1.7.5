@@ -51,25 +51,25 @@ global
   user haproxy
   group haproxy
   daemon
-  
+
 defaults
      log global
      mode tcp
      timeout connect 5000ms
      timeout client 50000ms
      timeout server 50000ms
-	 
+
 frontend stats-front
   bind *:8088
   mode http
   default_backend stats-back
-  
+
 backend stats-back
   mode http
   balance source
   stats uri /stats
   stats auth admin:king111
-  
+
 listen Kubernetes-Cluster
   bind 192.168.61.100:6443
   balance leastconn
