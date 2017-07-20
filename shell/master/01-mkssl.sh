@@ -2,7 +2,7 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-ENVFILE=./00-env.sh
+ENVFILE=$HOME/install/shell/00-env.sh
 
 # env
 if [ -f $ENVFILE ];then

@@ -2,7 +2,7 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-ENVFILE=./00-env.sh
+ENVFILE=$HOME/install/shell/00-env.sh
 
 # env
 if [ -f $ENVFILE ];then
@@ -33,4 +33,4 @@ etcdctl \
   --ca-file=/etc/kubernetes/ssl/ca.pem \
   --cert-file=/etc/kubernetes/ssl/kubernetes.pem \
   --key-file=/etc/kubernetes/ssl/kubernetes-key.pem \
-  set ${FLANNEL_ETCD_PREFIX}/config '{"Network":"'${CLUSTER_CIDR}'", "SubnetLen": 24, "Backend": {"Type": "vxlan"}}'
+  set ${FLANNEL_ETCD_PREFIX}/config '{"Network":"'${CLUSTER_CIDR}'","Backend":{"Type":"vxlan"}}'

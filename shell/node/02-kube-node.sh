@@ -2,7 +2,7 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-ENVFILE=./00-env.sh
+ENVFILE=$HOME/install/shell/00-env.sh
 
 # env
 if [ -f $ENVFILE ];then
@@ -36,11 +36,11 @@ sed 's#{KUBE_APISERVER}#'"$KUBE_APISERVER"'#g' $kube_pkg_dir/config/config > /et
 test ! -f $kube_pkg_dir/config/kubelet.service && echo "kubelet.server not found" && continue
 
 # replace var
-sed 's#{CURRENT_IP}#'"$CURRENT_IP"'#g;s#{CLUSTER_DNS_SVC_IP}#'"$CLUSTER_DNS_SVC_IP"'#g;s#{CLUSTER_DNS_DOMAIN}#'"$CLUSTER_DNS_DOMAIN"'#g;s#{SERVICE_CIDR}#'"$SERVICE_CIDR"'#g;s#{KUBE_APISERVER}#'"$KUBE_APISERVER"'#g;' $kube_pkg_dir/config/kubelet > /etc/kubernetes/kubelet
+sed 's#{CURRENT_IP}#'"$CURRENT_IP"'#g;s#{CLUSTER_DNS_SVC_IP}#'"$CLUSTER_DNS_SVC_IP"'#g;s#{CLUSTER_DNS_DOMAIN}#'"$CLUSTER_DNS_DOMAIN"'#g;s#{SERVICE_CIDR}#'"$SERVICE_CIDR"'#g;s#{APISERVER_CLUSTER_IP}#'"$APISERVER_CLUSTER_IP"'#g;' $kube_pkg_dir/config/kubelet > /etc/kubernetes/kubelet
 cp $kube_pkg_dir/config/kubelet.service /usr/lib/systemd/system/kubelet.service
 
 # config
-cd $pkg_dir/shell && ./kube-config.sh kubelet
+bash $HOME/install/shell/kube-config.sh kubelet
 
 # systemctl start
 systemctl daemon-reload
@@ -56,7 +56,7 @@ sed 's#{CURRENT_IP}#'"$CURRENT_IP"'#g;s#{CLUSTER_DNS_SVC_IP}#'"$CLUSTER_DNS_SVC_
 cp $kube_pkg_dir/config/kube-proxy.service /usr/lib/systemd/system/kube-proxy.service
 
 # config
-cd $pkg_dir/shell && ./kube-config.sh kube-proxy
+bash $HOME/install/shell/kube-config.sh kube-proxy
 
 # systemctl start
 systemctl daemon-reload
@@ -65,7 +65,7 @@ systemctl start kube-proxy
 systemctl status -l kube-proxy
 
 # Approce csr
-cd $pkg_dir/shell && ./kube-config.sh kubectl
+bash $HOME/install/shell/kube-config.sh kubectl
 kubectl get csr |awk '/Pending/{print $1}' |while read csr_name;do
   kubectl certificate approve $csr_name
 done
