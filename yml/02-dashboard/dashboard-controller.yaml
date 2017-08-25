@@ -38,6 +38,8 @@ spec:
             port: 9090
           initialDelaySeconds: 30
           timeoutSeconds: 30
+        args:
+        - --heapster-host=http://heapste
       tolerations:
       - key: "CriticalAddonsOnly"
         operator: "Exists"
