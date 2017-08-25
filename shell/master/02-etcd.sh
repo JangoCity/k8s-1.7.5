@@ -16,6 +16,7 @@ test ! -f /var/lib/etcd && mkdir -p /var/lib/etcd
 test ! -f /etc/etcd && mkdir -p /etc/etcd
 
 cp $etcd_pkg_dir/bin/etcd* /usr/local/bin
+chmod +x /usr/local/bin/*
 cat $etcd_pkg_dir/config/etcd.conf |sed 's#{NODE_NAME}#'"$NODE_NAME"'#g;s#{CURRENT_IP}#'"$CURRENT_IP"'#g;s#{ETCD_NODES}#'"$ETCD_NODES"'#g' > /etc/etcd/etcd.conf
 cp $etcd_pkg_dir/config/etcd.service /usr/lib/systemd/system/etcd.service
 
