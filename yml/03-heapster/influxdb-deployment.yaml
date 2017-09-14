@@ -17,7 +17,11 @@ spec:
         volumeMounts:
         - mountPath: /data
           name: influxdb-storage
+        - mountPath: /etc/
+          name: influxdb-config
       volumes:
       - name: influxdb-storage
-        hostPath:
-          path: /var/lib/monitoring-influxdb-data
+        emptyDir: {}
+      - name: influxdb-config
+        configMap:
+          name: influxdb-config
