@@ -42,6 +42,7 @@ spec:
           value: /
       volumes:
       - name: grafana-storage
-        emptyDir: {}
+        hostPath:
+          path: /data/monitoring-grafana-data
       imagePullSecrets:
       - name: registry-secret

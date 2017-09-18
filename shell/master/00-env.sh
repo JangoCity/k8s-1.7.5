@@ -39,7 +39,7 @@ SERVICE_CIDR="10.254.0.0/16"
 CLUSTER_CIDR="172.18.0.0/16"
 
 # 服务端口范围 (NodePort Range)
-NODE_PORT_RANGE="10000-35000"
+NODE_PORT_RANGE="6000-35000"
 
 # flanneld 网络配置前缀
 FLANNEL_ETCD_PREFIX="/kubernetes/network"

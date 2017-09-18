@@ -33,7 +33,7 @@ EOF
   BOOTSTRAP_TOKEN=$(awk -F',' '{print $1}' /etc/kubernetes/token.csv)
 fi
 
-# config
+# config kubernetes 集群
 if [ $TYPE == "kubectl" ];then
   kubectl config set-cluster kubernetes \
     --certificate-authority=/etc/kubernetes/ssl/ca.pem \
