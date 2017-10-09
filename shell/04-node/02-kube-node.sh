@@ -2,7 +2,7 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-ENVFILE=$HOME/install/shell/00-env.sh
+ENVFILE=$HOME/k8s_install/shell/00-env.sh
 
 # env
 if [ -f $ENVFILE ];then
@@ -40,7 +40,7 @@ sed 's#{CURRENT_IP}#'"$CURRENT_IP"'#g;s#{CLUSTER_DNS_SVC_IP}#'"$CLUSTER_DNS_SVC_
 cp $kube_pkg_dir/config/kubelet.service /usr/lib/systemd/system/kubelet.service
 
 # config
-bash $HOME/install/shell/kube-config.sh kubelet
+bash $HOME/k8s_install/shell/kube-config.sh kubelet
 
 # systemctl start
 systemctl daemon-reload
@@ -56,7 +56,7 @@ sed 's#{CURRENT_IP}#'"$CURRENT_IP"'#g;s#{CLUSTER_DNS_SVC_IP}#'"$CLUSTER_DNS_SVC_
 cp $kube_pkg_dir/config/kube-proxy.service /usr/lib/systemd/system/kube-proxy.service
 
 # config
-bash $HOME/install/shell/kube-config.sh kube-proxy
+bash $HOME/k8s_install/shell/kube-config.sh kube-proxy
 
 # systemctl start
 systemctl daemon-reload
@@ -65,7 +65,7 @@ systemctl start kube-proxy
 systemctl status -l kube-proxy
 
 # Approce csr
-bash $HOME/install/shell/kube-config.sh kubectl
+bash $HOME/k8s_install/shell/kube-config.sh kubectl
 kubectl get csr |awk '/Pending/{print $1}' |while read csr_name;do
   kubectl certificate approve $csr_name
 done

@@ -2,7 +2,7 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-ENVFILE=$HOME/install/shell/00-env.sh
+ENVFILE=$HOME/k8s_install/shell/00-env.sh
 
 # env
 if [ -f $ENVFILE ];then
@@ -15,7 +15,7 @@ fi
 current_timestamp=`date +%Y%m%d%H%M%S`
 
 if test -d $ssl_work_dir;then
-  mv $ssl_work_dir $ssl_dir.$current_timestamp
+  mv $ssl_work_dir ../$ssl_dir.$current_timestamp
 fi
 
 mkdir -p $ssl_work_dir && cd $ssl_work_dir || (echo "$ssl_dir not exist";exit 1)

@@ -2,7 +2,7 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-ENVFILE=$HOME/install/shell/00-env.sh
+ENVFILE=$HOME/k8s_install/shell/00-env.sh
 
 # env
 if [ -f $ENVFILE ];then
@@ -42,4 +42,4 @@ for i in apiserver scheduler controller-manager;do
 done
 
 # create config file
-bash $HOME/install/shell/kube-config.sh kubectl 
+bash $HOME/k8s_install/shell/kube-config.sh kubectl

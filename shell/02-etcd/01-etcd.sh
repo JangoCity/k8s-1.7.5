@@ -2,7 +2,7 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-ENVFILE=$HOME/install/shell/00-env.sh
+ENVFILE=$HOME/k8s_install/shell/00-env.sh
 
 # env
 if [ -f $ENVFILE ];then
@@ -11,7 +11,7 @@ else
   echo "$ENVFILE not found!"
   exit
 fi
-scp 192.168.61.71:/etc/kubernetes/ssl/* /etc/kubernetes/ssl
+scp 192.168.61.61:/etc/kubernetes/ssl/* /etc/kubernetes/ssl
 test ! -f /var/lib/etcd && mkdir -p /var/lib/etcd
 test ! -f /etc/etcd && mkdir -p /etc/etcd
 

@@ -1,41 +1,4 @@
-
-
-./app_push.sh reg.dockcloud.cn/platform/zuuladmin:alpine20170706
-./app_push.sh reg.dockcloud.cn/platform/auditlogcenter:alpine20170706
-./app_push.sh reg.dockcloud.cn/platform/messagecenter:alpine20170706
-./app_push.sh reg.dockcloud.cn/platform/ordercenter:alpine20170706
-./app_push.sh reg.dockcloud.cn/platform/productcenter:alpine20170706
-./app_push.sh reg.dockcloud.cn/platform/taskcenter:alpine20170706
-./app_push.sh reg.dockcloud.cn/platform/usercenter:alpine20170706
-./app_push.sh reg.dockcloud.cn/platform/11-task-center-server:alpine20170706
-./app_push.sh reg.dockcloud.cn/platform/systemcenter:alpine20170706
-
-
-zuul-admin:alpine20170706
-auditlog-cd  center:alpine20170706
-message-center:alpine20170706
-order-center:alpine20170706
-product-center:alpine20170706
-task-center:alpine20170706
-user-center:alpine20170706
-
-system-center:alpine20170706
-
-kubectl replace -f 07-auditlog-center/auditlog-center-deployment.yml
-kubectl replace -f 08-message-center/message-center-deployment.yml 
-kubectl replace -f 09-order-center/order-center-deployment.yml 
-kubectl replace -f 10-product-center/product-center-deployment.yml 
-kubectl replace -f 11-task-center/task-center-deployment.yml 
-kubectl replace -f 12-user-center/user-center-deployment.yml
-kubectl replace -f 14-zuul-admin/zuuladmin-deployment.yml
-kubectl replace -f 22-newPerson/newperson-deployment.yml
-
-
-（新增）镜像有更新，新的版本号
-
-
-
-# 备份etcd数据
+﻿# 备份etcd数据
 etcdctl backup --data-dir /var/lib/etcd/default.etcd --backup-dir /root/etcd71
 
 etcd备份

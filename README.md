@@ -1,22 +1,43 @@
-# 00 Kubernetes 1.7 版本环境（持续完善中）
+# 00 Kubernetes 1.8 版本环境（持续完善中）
 ## 系统版本及软件版本
-+ CentOS Linux release 7.3.1611 (Core)
-+ linux kernel 3.10.0-514.16.1.el7.x86_64
-+ kubernetes 1.7.0
++ CentOS Linux release 7.4.1708 (Core) 
++ 3.10.0-693.2.2.el7.x86_64
++ kubernetes 1.8.0
 + docker version 1.12.6, build 3a094bd/1.12.6
 + etcdctl version: 3.2.1 API version: 2
 + Flanneld 0.7.1 vxlan 网络
 + TLS 认证通信相关组件，(如etcd、kubernetes master 和 node)
 + RBAC 授权
 + kubelet TLS BootStrapping、kubedns、dashboard、heapster(influxdb、grafana)、EFK (elasticsearch、fluentd、kibana) 插件
-+ 私有 docker registry，使用 ceph rgw 后端存储，TLS + HTTP Basic 认证
+
 ## 安装目录结构
 ```
-[root@node71 ~]# tree install/
-install/
+k8s_install/
+├── 01-shell
+│   ├── 01-tls
+│   │   ├── 00-env.sh
+│   │   └── 01-mkssl.sh
+│   ├── 02-etcd
+│   │   ├── 00-env.sh
+│   │   └── 02-etcd.sh
+│   ├── 03-master
+│   │   ├── 00-env.sh
+│   │   ├── 01-kube-master.sh
+│   │   ├── 02-flanneld.sh
+│   │   └── kube-config.sh
+│   ├── 04-node
+│   │   ├── 00-env.sh
+│   │   ├── 01-flanneld.sh
+│   │   └── 02-kube-node.sh
+│   ├── 05-test
+│   │   ├── 77-etcdctl.sh
+│   │   ├── 88-etcd-status.sh
+│   │   └── 99-apiserver-ha.sh
+│   └── test.txt
 ├── pkg
 │   ├── cfssl
 │   │   ├── bin
+│   │   │   ├── 1.2
 │   │   │   ├── cfssl
 │   │   │   ├── cfssl-certinfo
 │   │   │   └── cfssljson
@@ -28,6 +49,7 @@ install/
 │   │       └── kubernetes-csr.json
 │   ├── etcd
 │   │   ├── bin
+│   │   │   ├── 3.2.1
 │   │   │   ├── etcd
 │   │   │   └── etcdctl
 │   │   └── config
@@ -35,12 +57,12 @@ install/
 │   │       └── etcd.service
 │   ├── flanneld
 │   │   ├── bin
-│   │   │   ├── flannel-0.7.1-1.el7.x86_64.rpm
-│   │   │   └── flannel-v0.8.0-rc1-linux-amd64.tar.gz
+│   │   │   └── flannel-0.7.1-1.el7.x86_64.rpm
 │   │   └── config
 │   │       └── flanneld
 │   └── kubernetes
 │       ├── bin
+│       │   ├── 1.8.0
 │       │   └── kubernetes-server-linux-amd64.tar.gz
 │       └── config
 │           ├── apiserver
@@ -54,15 +76,7 @@ install/
 │           ├── kube-scheduler.service
 │           ├── proxy
 │           └── scheduler
-├── shell
-│   ├── 00-env.sh
-│   ├── 01-mkssl.sh
-│   ├── 02-etcd.sh
-│   ├── 03-kube-master.sh
-│   ├── 04-flanneld.sh
-│   ├── 05-kube-node.sh
-│   └── kube-config.sh
-└── yml
+└── yaml
     ├── 01-kubedns
     │   ├── kubedns-cm.yaml
     │   ├── kubedns-controller.yaml
@@ -94,18 +108,35 @@ install/
     │   ├── fluentd-es-rbac.yaml
     │   ├── kibana-controller.yaml
     │   └── kibana-service.yaml
-    └── 06-domain
-
-21 directories, 60 files
+    ├── 06-domain
+    ├── 07-prometheus
+    │   ├── prometheus-alertmanager-configmap.yaml
+    │   ├── prometheus-alert-rules-configmap.yaml
+    │   ├── prometheus-deployment.yaml
+    │   ├── prometheus-etcd-ex-svc.yaml
+    │   ├── prometheus-kubernetes-configmap.yaml
+    │   ├── prometheus-node-exporter.yaml
+    │   ├── prometheus-rbac.yml
+    │   └── prometheus-service.yaml
+    ├── 09-rabbitmq-autocluster_for_k8s1.7
+    │   ├── rabbitmq-autocluster-statefulset.yaml
+    │   ├── rabbitmq-cookie-secret.yaml
+    │   └── rabbitmq-rbac.yaml
+    └── nginx-shensuo
+        ├── hpa-nginx.yaml
+        ├── nginx-deployment.yaml
+        └── nginx-svc.yaml
+        
+29 directories, 84 files
 ```
-4 directories, 8 files
+
 ## 集群机器
-+ 192.168.61.71
-+ 192.168.61.72
-+ 192.168.61.73
-+ 192.168.61.74
-+ 192.168.61.75
-+ 192.168.61.76
++ 192.168.61.61
++ 192.168.61.62
++ 192.168.61.63
++ 192.168.61.64
++ 192.168.61.65
++ 192.168.61.66
 
 ## 安装脚本
 ```
@@ -138,16 +169,24 @@ kubernetes 系统各组件需要使用 TLS 证书对通信进行加密，本文�
 
 ## 添加集群机器ip
 ``` bash
-# cat install/pkg/cfssl/config/kubernetes-csr.json
+# cat /root/k8s_install/pkg/cfssl/config/kubernetes-csr.json
 {
   "CN": "kubernetes",
   "hosts": [
-    ...
-    "192.168.61.71",
-    "192.168.61.72",
-    "192.168.61.73",
+    "127.0.0.1",
+    "10.254.0.1",
+    "192.168.61.61",
+    "192.168.61.62",
+    "192.168.61.63",
+    "192.168.61.52",
+    "192.168.61.53",
+    "192.168.61.54",
     "192.168.61.100",
-    ...
+    "kubernetes",
+    "kubernetes.default",
+    "kubernetes.default.svc",
+    "kubernetes.default.svc.cluster",
+    "kubernetes.default.svc.cluster.local"
   ],
   ...
 }

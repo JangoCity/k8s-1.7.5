@@ -2,7 +2,7 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-ENVFILE=$HOME/install/shell/00-env.sh
+ENVFILE=$HOME/k8s_install/shell/00-env.sh
 
 # env
 if [ -f $ENVFILE ];then
@@ -13,8 +13,8 @@ else
 fi
 
 # copy ssl key
-scp 192.168.61.71:/etc/kubernetes/ssl/* /etc/kubernetes/ssl/
-scp 192.168.61.71:/etc/kubernetes/token.csv /etc/kubernetes/
+scp 192.168.61.61:/etc/kubernetes/ssl/* /etc/kubernetes/ssl/
+scp 192.168.61.61:/etc/kubernetes/token.csv /etc/kubernetes/
 # deploy
 test ! -f $flanneld_rpm_file/flannel-0.7.1-1.el7.x86_64.rpm && echo "$flanneld_rpm_file not found!" && exit 1
 yum install -y $flanneld_rpm_file/flannel-0.7.1-1.el7.x86_64.rpm

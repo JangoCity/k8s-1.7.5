@@ -2,7 +2,7 @@
 # author: felix-zh
 # e-mail: faer615@gmail.com
 
-ENVFILE=$HOME/install/shell/00-env.sh
+ENVFILE=$HOME/k8s_install/shell/00-env.sh
 
 # env
 if [ -f $ENVFILE ];then
@@ -64,7 +64,6 @@ elif [ $TYPE == "kubelet" ];then
     --cluster=kubernetes --user=kubelet-bootstrap --kubeconfig=bootstrap.kubeconfig
   # 设置默认上下文
   kubectl config use-context default --kubeconfig=bootstrap.kubeconfig
-
   # 
   mv bootstrap.kubeconfig /etc/kubernetes
 
