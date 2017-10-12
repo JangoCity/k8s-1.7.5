@@ -1,4 +1,4 @@
-﻿# 备份etcd数据
+# 备份etcd数据
 etcdctl backup --data-dir /var/lib/etcd/default.etcd --backup-dir /root/etcd71
 
 etcd备份
