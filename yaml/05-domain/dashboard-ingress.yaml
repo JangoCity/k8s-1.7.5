@@ -1,11 +1,11 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: web.ityunv.com
+  name: kubernetes-dashboard
   namespace: kube-system
 spec:
   rules:
-  - host: 192.168.61.100
+  - host: node61.ko178.cn
     http:
       paths:
       - path: /

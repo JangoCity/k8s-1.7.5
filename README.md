@@ -2,7 +2,7 @@
 ## 系统版本及软件版本
 + CentOS Linux release 7.4.1708 (Core) 
 + 3.10.0-693.2.2.el7.x86_64
-+ kubernetes 1.8.0
++ kubernetes 1.7.5
 + docker version 1.12.6, build 3a094bd/1.12.6
 + etcdctl version: 3.2.1 API version: 2
 + Flanneld 0.7.1 vxlan 网络
@@ -12,28 +12,9 @@
 
 ## 安装目录结构
 ```
+[root@node61 ~]# tree k8s_install/
 k8s_install/
-├── 01-shell
-│   ├── 01-tls
-│   │   ├── 00-env.sh
-│   │   └── 01-mkssl.sh
-│   ├── 02-etcd
-│   │   ├── 00-env.sh
-│   │   └── 02-etcd.sh
-│   ├── 03-master
-│   │   ├── 00-env.sh
-│   │   ├── 01-kube-master.sh
-│   │   ├── 02-flanneld.sh
-│   │   └── kube-config.sh
-│   ├── 04-node
-│   │   ├── 00-env.sh
-│   │   ├── 01-flanneld.sh
-│   │   └── 02-kube-node.sh
-│   ├── 05-test
-│   │   ├── 77-etcdctl.sh
-│   │   ├── 88-etcd-status.sh
-│   │   └── 99-apiserver-ha.sh
-│   └── test.txt
+├── haproxy.cfg
 ├── pkg
 │   ├── cfssl
 │   │   ├── bin
@@ -62,7 +43,7 @@ k8s_install/
 │   │       └── flanneld
 │   └── kubernetes
 │       ├── bin
-│       │   ├── 1.8.0
+│       │   ├── 1.7.5
 │       │   └── kubernetes-server-linux-amd64.tar.gz
 │       └── config
 │           ├── apiserver
@@ -76,7 +57,93 @@ k8s_install/
 │           ├── kube-scheduler.service
 │           ├── proxy
 │           └── scheduler
-└── yaml
+├── shell
+│   ├── 00-env.sh
+│   ├── 01-tls
+│   │   └── 01-mkssl.sh
+│   ├── 02-etcd
+│   │   └── 01-etcd.sh
+│   ├── 03-master
+│   │   ├── 01-flanneld.sh
+│   │   └── 02-kube-master.sh
+│   ├── 04-node
+│   │   ├── 01-flanneld.sh
+│   │   └── 02-kube-node.sh
+│   ├── 05-test
+│   │   ├── 77-etcdctl.sh
+│   │   ├── 88-etcd-status.sh
+│   │   └── 99-apiserver-ha.sh
+│   ├── kube-config.sh
+│   └── test.txt
+├── ssl_workdir
+│   ├── admin.csr
+│   ├── admin-key.pem
+│   ├── admin.pem
+│   ├── ca.csr
+│   ├── ca-key.pem
+│   ├── ca.pem
+│   ├── kube-proxy.csr
+│   ├── kube-proxy-key.pem
+│   ├── kube-proxy.pem
+│   ├── kubernetes.csr
+│   ├── kubernetes-key.pem
+│   └── kubernetes.pem
+├── yaml
+│   ├── 01-kubedns
+│   │   ├── kubedns-cm.yaml
+│   │   ├── kubedns-controller.yaml
+│   │   ├── kubedns-sa.yaml
+│   │   └── kubedns-svc.yaml
+│   ├── 02-dashboard
+│   │   ├── dashboard-controller.yaml
+│   │   ├── dashboard-rbac.yaml
+│   │   └── dashboard-service.yaml
+│   ├── 03-heapster
+│   │   ├── grafana-deployment.yaml
+│   │   ├── grafana-service.yaml
+│   │   ├── heapster-deployment.yaml
+│   │   ├── heapster-rbac.yaml
+│   │   ├── heapster-service.yaml
+│   │   ├── influxdb-cm.yaml
+│   │   ├── influxdb-deployment.yaml
+│   │   └── influxdb-service.yaml
+│   ├── 04-ingress
+│   │   ├── default-backend.yml
+│   │   ├── nginx-ingress-controller-rbac.yml
+│   │   ├── nginx-ingress-controller-service.yml
+│   │   └── nginx-ingress-controller.yml
+│   ├── 05-domain
+│   │   ├── dashboard-ingress.yaml
+│   │   ├── efk-ingress.yaml
+│   │   ├── grafana-ingress.yaml
+│   │   └── prometheus-ingress.yaml
+│   ├── 06-efk
+│   │   ├── es-controller.yaml
+│   │   ├── es-rbac.yaml
+│   │   ├── es-service.yaml
+│   │   ├── fluentd-es-ds.yaml
+│   │   ├── fluentd-es-rbac.yaml
+│   │   ├── kibana-controller.yaml
+│   │   └── kibana-service.yaml
+│   ├── 07-grafana
+│   │   ├── grafana-deployment.yaml
+│   │   ├── grafana-rbac.yaml
+│   │   └── grafana-service.yaml
+│   ├── 08-prometheus
+│   │   ├── prometheus-alertmanager-configmap.yaml
+│   │   ├── prometheus-alert-rules-configmap.yaml
+│   │   ├── prometheus-deployment.yaml
+│   │   ├── prometheus-etcd-ex-svc.yaml
+│   │   ├── prometheus-kubernetes-configmap.yaml
+│   │   ├── prometheus-node-exporter.yaml
+│   │   ├── prometheus-rbac.yml
+│   │   └── prometheus-service.yaml
+│   └── 09.rabbitmq
+│       ├── rabbitmq-autocluster-statefulset.yaml
+│       ├── rabbitmq-cookie-secret.yaml
+│       ├── rabbitmq-rbac.yaml
+│       └── rabbitmq-svc.yaml
+└── yaml.bak
     ├── 01-kubedns
     │   ├── kubedns-cm.yaml
     │   ├── kubedns-controller.yaml
@@ -86,17 +153,9 @@ k8s_install/
     │   ├── dashboard-controller.yaml
     │   ├── dashboard-rbac.yaml
     │   └── dashboard-service.yaml
-    ├── 03-heapster
-    │   ├── grafana-deployment.yaml
-    │   ├── grafana-service.yaml
-    │   ├── heapster-deployment.yaml
-    │   ├── heapster-rbac.yaml
-    │   ├── heapster-service.yaml
-    │   ├── influxdb-cm.yaml
-    │   ├── influxdb-deployment.yaml
-    │   └── influxdb-service.yaml
     ├── 04-ingress
     │   ├── default-backend.yml
+    │   ├── nginx-ingress-controller.aaaa
     │   ├── nginx-ingress-controller-rbac.yml
     │   ├── nginx-ingress-controller-service.yml
     │   └── nginx-ingress-controller.yml
@@ -109,25 +168,77 @@ k8s_install/
     │   ├── kibana-controller.yaml
     │   └── kibana-service.yaml
     ├── 06-domain
-    ├── 07-prometheus
-    │   ├── prometheus-alertmanager-configmap.yaml
-    │   ├── prometheus-alert-rules-configmap.yaml
-    │   ├── prometheus-deployment.yaml
-    │   ├── prometheus-etcd-ex-svc.yaml
-    │   ├── prometheus-kubernetes-configmap.yaml
-    │   ├── prometheus-node-exporter.yaml
-    │   ├── prometheus-rbac.yml
-    │   └── prometheus-service.yaml
-    ├── 09-rabbitmq-autocluster_for_k8s1.7
-    │   ├── rabbitmq-autocluster-statefulset.yaml
-    │   ├── rabbitmq-cookie-secret.yaml
-    │   └── rabbitmq-rbac.yaml
-    └── nginx-shensuo
-        ├── hpa-nginx.yaml
-        ├── nginx-deployment.yaml
-        └── nginx-svc.yaml
-        
-29 directories, 84 files
+    ├── nginx-ingress-controller.yml
+    ├── other
+    │   ├── 04-efk
+    │   │   ├── es-controller.yaml
+    │   │   ├── es-rbac.yaml
+    │   │   ├── es-service.yaml
+    │   │   ├── fluent-bit-acc.yml
+    │   │   ├── fluent-bit-daemonset-elasticsearch.yaml
+    │   │   ├── fluent-bit-rbac.yaml
+    │   │   ├── kibana-controller.yaml
+    │   │   └── kibana-service.yaml
+    │   ├── 05-ingress
+    │   │   ├── 1nginx-ingress-rbac.yml
+    │   │   ├── 2default-backend.yml
+    │   │   ├── 3nginx-ingress-controller.yml
+    │   │   └── 4nginx-ingress-service.yml
+    │   ├── 06-fluent-bit
+    │   │   ├── fluent-bit-acc.yml
+    │   │   ├── fluent-bit-daemonset-elasticsearch.yaml
+    │   │   └── fluent-bit-rbac.yaml
+    │   ├── 07-domain
+    │   │   ├── domain-dashboard.yml
+    │   │   ├── kibana-logging.yml
+    │   │   └── monitoring-grafana.yml
+    │   ├── dns
+    │   │   ├── docker
+    │   │   │   └── Dockerfile
+    │   │   ├── kube-config
+    │   │   │   ├── google
+    │   │   │   │   └── heapster.yaml
+    │   │   │   ├── influxdb
+    │   │   │   │   ├── grafana.yaml
+    │   │   │   │   ├── heapster.yaml
+    │   │   │   │   └── influxdb.yaml
+    │   │   │   ├── rbac
+    │   │   │   │   └── heapster-rbac.yaml
+    │   │   │   ├── standalone
+    │   │   │   │   └── heapster-controller.yaml
+    │   │   │   ├── standalone-test
+    │   │   │   │   ├── heapster-controller.yaml
+    │   │   │   │   ├── heapster-service.yaml
+    │   │   │   │   └── heapster-summary-controller.yaml
+    │   │   │   └── standalone-with-apiserver
+    │   │   │       ├── common.sh
+    │   │   │       ├── heapster-apiserver-secrets.template
+    │   │   │       ├── heapster-deployment.yaml
+    │   │   │       ├── heapster-service.yaml
+    │   │   │       └── startup.sh
+    │   │   └── kube.sh
+    │   └── efk-rbac.yml
+    └── yaml-old
+        ├── 07-prometheus
+        │   ├── prometheus-alertmanager-configmap.yaml
+        │   ├── prometheus-alert-rules-configmap.yaml
+        │   ├── prometheus-deployment.yaml
+        │   ├── prometheus-etcd-ex-svc.yaml
+        │   ├── prometheus-kubernetes-configmap.yaml
+        │   ├── prometheus-node-exporter.yaml
+        │   ├── prometheus-rbac.yml
+        │   └── prometheus-service.yaml
+        ├── 09-rabbitmq-autocluster_for_k8s1.7
+        │   ├── rabbitmq-autocluster-statefulset.yaml
+        │   ├── rabbitmq-cookie-secret.yaml
+        │   └── rabbitmq-rbac.yaml
+        └── nginx-shensuo
+            ├── hpa-nginx.yaml
+            ├── nginx-deployment.yaml
+            └── nginx-svc.yaml
+
+54 directories, 168 files
+
 ```
 
 ## 集群机器
@@ -140,8 +251,8 @@ k8s_install/
 
 ## 安装脚本
 ```
-[root@node71 ~/install/shell]# ls
-00-env.sh  01-mkssl.sh  02-etcd.sh  03-kube-master.sh  04-flanneld.sh  05-kube-node.sh  kube-config.sh
+[root@node61 ~/k8s_install/shell]# ls
+00-env.sh  01-tls  02-etcd  03-master  04-node  05-test  kube-config.sh  test.txt
 ```
 
 # 1. 创建 TLS 证书和秘钥(在一个管理节点运行，其他节点拷贝即可)
@@ -194,7 +305,7 @@ kubernetes 系统各组件需要使用 TLS 证书对通信进行加密，本文�
 ```
 ## 使用脚本生成TLS 证书和秘钥
 ```
-# cd install/shell
+# cd ~/k8s_install/shell/01-tls
 # ./01-mkssl.sh
 ```
 > 检查/etc/kubernetes/ssl目录下自动生成相关的证书完整性
@@ -207,11 +318,11 @@ kubernetes 系统各组件需要使用 TLS 证书对通信进行加密，本文�
 > 确保 /etc/kubernetes/token.csv 也一并分发
 
 # 02 部署高可用etcd集群
-kuberntes 使用 etcd 存储数据，本文档部署3个节点的 etcd 高可用集群，(复用kubernetes master机器)，分别命名为node71、node72、node73：
+kuberntes 使用 etcd 存储数据，本文档部署3个节点的 etcd 高可用集群，(复用kubernetes master机器)，分别命名为node61、node62、node63：
 
-+ node71：192.168.61.71
-+ node72：192.168.61.72
-+ node73：192.168.61.73
++ node61：192.168.61.61
++ node62：192.168.61.62
++ node63：192.168.61.63
 
 ## 修改使用的变量
 修改当前机器上的00-globalenv.sh上的相关ip与配置信息
@@ -231,24 +342,20 @@ kuberntes 使用 etcd 存储数据，本文档部署3个节点的 etcd 高可用
 > kubernetes 证书的hosts字段列表中包含上面三台机器的 IP，否则后续证书校验会失败；
 
 ## 安装etcd
-执行安装脚本install/shell/02-etcd.sh
+执行安装脚本/root/k8s_install/shell/02-etcd/01-etcd.sh 
 ``` bash
-# cd install/shell
-# ./02-etcd.sh
+# /root/k8s_install/shell/02-etcd/01-etcd.sh
 ```
 > 在所有的etcd节点重复上面的步骤，直到所有机器etcd 服务都已启动。
 
 ## 确认集群状态
 三台 etcd 的输出均为 healthy 时表示集群服务正常（忽略 warning 信息）
 ``` bash
-# cd install/shell
-# ./77-etcd-status.sh
-2017-07-11 09:08:40.814488 I | warning: ignoring ServerName for user-provided CA for backwards compatibility is deprecated
-https://192.168.31.180:2379 is healthy: successfully committed proposal: took = 8.442607ms
+# /root/k8s_install/shell/05-test77-etcd-status.sh
 ```
 ## 检查 etcd集群中配置的网段信息
 ```
-[root@node71 shell]# ./77-etcdctl.sh get /kubernetes/network/config
+[root@node61 shell]# ./77-etcdctl.sh get /kubernetes/network/config
 ```
 
 # 03 部署kubernetes master节点
@@ -296,31 +403,29 @@ kubernetes master 节点包含的组件：
 ``` bash
 [root@k8s-master shell]# ip a
 ```
-+ 设置网卡名字为：**eno16777984**
++ 设置网卡名字为：**ens160**
 ``` bash
-# vi install/shell/00-setenv.sh
-NET_INTERFACE_NAME=eno16777984
+# vim /root/k8s_install/shell/00-setenv.sh
+NET_INTERFACE_NAME=ens160
 ```
 > 因flanneld启动会绑定网卡以生成虚拟ip信息，若不指定，会自动找寻除lookback外的网卡信息
 
 ### 安装并启动flanneld
 ```
-# cd install/shell
-# ./04-flanneld.sh
+# /root/k8s_install/shell/03-master/01-flanneld.sh
 ```
 > 该脚本会安装flanneld软件，以供dashboard，heapster可以通过web访问
 
 ## 部署kube-apiserver,kube-scheduler,kube-controller-manager
 执行部署脚本，部署相关master应用
 ``` bash
-# cd install/shell
-# ./03-kube-master.sh
+# /root/k8s_install/shell/03-master/02-kube-master.sh
 ```
 > 该脚本中会安装kube master相关组件并配置kubectl config
 
 ## 验证 master 节点功能
 ``` bash
-[root@node71 shell]# kubectl get componentstatuses
+[root@node76 ~]# kubectl get componentstatuses
 NAME                 STATUS    MESSAGE              ERROR
 controller-manager   Healthy   ok                   
 scheduler            Healthy   ok                   
@@ -335,14 +440,6 @@ kubernetes Node 节点包含如下组件：
 + docker
 + kubelet
 + kube-proxy
-
-## 确认环境变量
-> cat install/shell/00-globalenv.sh
-+ CURRENT_IP
-+ basedir
-+ KUBE_APISERVER
-+ kube_pkg_dir
-+ kube_tar_file
 
 ## 确认TLS 证书文件
 确认token.csv，ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem 存在
@@ -365,8 +462,7 @@ kubernetes Node 节点包含如下组件：
 
 ## 安装和配置 docker
 ```
-# cd install/shell
-# ./04-docker.sh
+# yum install docker -y
 
 ```
 > 若安装失败，请检查os版本安装时，是否是最小化安装，或者根据报错依赖信息，直接删除掉systemd-python-219-19.el7.x86_64和libcgroup-tools-0.41-8.el7.x86_64
@@ -386,20 +482,21 @@ kubernetes Node 节点包含如下组件：
 
 ## 安装和配置 kubelet和kube-proxy
 ```
-# ./06-kube-node.sh
+# /root/k8s_install/shell/04-node/01-flanneld.sh
+# /root/k8s_install/shell/04-node/02-kube-node.sh
 ```
 
 # 05 部署kubedns 插件
 ## 安装
 ``` bash
-[root@node71 ~/install/yml]# ls -ltr  ~/install/yml/01-kubedns/
+[root@node61 ~/k8s_install/yaml/01-kubedns]# ll -ltr
 total 20
--rw-r--r-- 1 root root 1061 Jul  5 12:43 kubedns-svc.yaml
--rw-r--r-- 1 root root  195 Jul  5 12:43 kubedns-sa.yaml
--rw-r--r-- 1 root root  752 Jul  5 12:43 kubedns-cm.yaml
--rw-r--r-- 1 root root 5535 Jul  7 11:03 kubedns-controller.yaml
+-rw-r--r--. 1 root root 1061 Aug 17 16:03 kubedns-svc.yaml
+-rw-r--r--. 1 root root  195 Aug 17 16:03 kubedns-sa.yaml
+-rw-r--r--. 1 root root  752 Aug 17 16:03 kubedns-cm.yaml
+-rw-r--r--. 1 root root 5535 Oct 11 15:25 kubedns-controller.yaml
 
-[root@node71 ~/install/yml]# kubectl create -f 01-kubedns/
+[root@node61 ~/k8s_install/yaml/01-kubedns]# kubectl create -f 01-kubedns/
 configmap "kube-dns" created
 deployment "kube-dns" created
 serviceaccount "kube-dns" created
@@ -409,13 +506,10 @@ service "kube-dns" created
 
 ## 确认状态
 ``` bash
-root@node71 ~/install]# kubectl get svc,po -o wide --all-namespaces
-NAMESPACE     NAME             CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE   SELECTOR
-default       svc/kubernetes   10.254.0.1    <none>        443/TCP   5d    <none>
-kube-system   svc/kube-dns     10.254.0.2   <none>        53/UDP,53/TCP   7m        k8s-app=kube-dns
-
-NAMESPACE     NAME             READY     STATUS    RESTARTS   AGE     IP        NODE
-kube-system   po/default-http-backend-1865486490-r500p   1/1      Running   0      8h   172.30.74.2   192.168.61.76
+[root@node61 ~/k8s_install/yaml/01-kubedns]# kubectl get svc,po -o wide --all-namespaces
+NAMESPACE     NAME                        CLUSTER-IP       EXTERNAL-IP   PORT(S)                         AGE       SELECTOR
+default       svc/kubernetes              10.254.0.1       <none>        443/TCP                         21h       <none>
+kube-system   svc/default-http-backend    10.254.232.193   <none>        80/TCP                          16h       k8s-app=default-http-backend
 ```
 
 # 06 部署 dashboard 插件
@@ -451,27 +545,13 @@ kube-system   po/kubernetes-dashboard-2172513996-thb5q   1/1       Running   0  
 ## 访问dashboard
 + kubernetes-dashboard 服务暴露了 NodePort，可以使用 http://NodeIP:nodePort 地址访问 dashboard；
 ``` bash
-[root@node71 ~/install/yml]# kubectl get po,svc -o wide --all-namespaces |grep dashboard
+[root@node61 ~/k8s_install/yaml/01-kubedns]# kubectl get po,svc -o wide --all-namespaces |grep dashboard
+kube-system   po/kubernetes-dashboard-1054243260-wt0qb       1/1       Running   0          21h       172.18.13.5   192.168.61.64
 
-kube-system   po/kubernetes-dashboard-3851771191-k5839   1/1       Running   0          4d        172.30.46.2   192.168.61.75
-kube-system   svc/kubernetes-dashboard    10.254.178.184   <nodes>       80:16304/TCP                    4d        k8s-app=kubernetes-dashboard
+kube-system   svc/kubernetes-dashboard    10.254.130.193   <nodes>       80:24850/TCP                    21h       k8s-app=kubernetes-dashboard               4d        k8s-app=kubernetes-dashboard
 ```
-> 直接访问： http://192.168.61.75:16304 或者 http://192.168.61.71:8080/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/#!/workload?namespace=default
+> 直接访问： http://192.168.61.75:24850 或者 http://192.168.61.61:8080/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/#!/workload?namespace=default
 + 通过 kube-apiserver 访问 dashboard；
-
-``` bash
-[root@node71 ~/install/yml]# kubectl cluster-info
-Kubernetes master is running at https://192.168.61.71:6443
-Elasticsearch is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/elasticsearch-logging/proxy
-Heapster is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/heapster/proxy
-Kibana is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/kibana-logging/proxy
-KubeDNS is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/kube-dns/proxy
-kubernetes-dashboard is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy
-monitoring-grafana is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/monitoring-grafana/proxy
-monitoring-influxdb is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/monitoring-influxdb/proxy
-```
-> 直接通过https访问会报错，可以通过http api的8080端口访问
-+ 通过 kubectl proxy 访问 dashboard：
 
 ``` bash
 任意安装kubectl节点执行
@@ -482,7 +562,7 @@ monitoring-influxdb is running at https://192.168.61.71:6443/api/v1/namespaces/k
 # 07 部署 Heapster插件
 ## 创建
 ``` bash
-[root@node71 ~/install/yml]# kubectl create -f 03-heapster
+[root@node61 ~/install/yml]# kubectl create -f 03-heapster
 deployment "monitoring-grafana" created
 service "monitoring-grafana" created
 deployment "heapster" created
@@ -495,7 +575,7 @@ service "monitoring-influxdb" created
 ```
 ## 确认状态
 ``` bash
-[root@node71 ~/install/yml]# kubectl get svc,po -o wide --all-namespaces
+[root@node61 ~/install/yml]# kubectl get svc,po -o wide --all-namespaces
 kube-system   svc/heapster               10.254.244.190   <none>        80/TCP                        28s       k8s-app=heapster
 kube-system   svc/monitoring-grafana     10.254.72.242    <none>        80/TCP                        28s       k8s-app=grafana
 kube-system   svc/monitoring-influxdb    10.254.129.64    <nodes>       8086:8815/TCP,8083:8471/TCP   27s       k8s-app=influxdb
@@ -508,7 +588,7 @@ kube-system   po/monitoring-influxdb-14932621-ztgh4      1/1       Running   0  
 # 08 部署 EFK 插件
 ## 安装
 ``` bash
-[root@node71 ~/install/yml/05-efk]# kubectl create -f ./      
+[root@node61 ~/install/yml/05-efk]# kubectl create -f ./      
 replicationcontroller "elasticsearch-logging-v1" created
 serviceaccount "elasticsearch" created
 clusterrolebinding "elasticsearch" created
@@ -524,20 +604,20 @@ service "kibana-logging" created
 DaemonSet fluentd-es-v1.23 只会调度到设置了标签 beta.kubernetes.io/fluentd-ds-ready=true 的 Node，需要在期望运行 fluentd 的 Node 上设置该标签；
 
 ``` bash
-kubectl label nodes 192.168.61.73 beta.kubernetes.io/fluentd-ds-ready=true
+kubectl label nodes 192.168.61.64 beta.kubernetes.io/fluentd-ds-ready=true
 ```
 ## 检查状态
 
 ``` bash
-[root@node71 ~/install/yml/05-efk]# kubectl cluster-info
-Kubernetes master is running at https://192.168.61.71:6443
-Elasticsearch is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/elasticsearch-logging/proxy
-Heapster is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/heapster/proxy
-Kibana is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/kibana-logging/proxy
-KubeDNS is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/kube-dns/proxy
-kubernetes-dashboard is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy
-monitoring-grafana is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/monitoring-grafana/proxy
-monitoring-influxdb is running at https://192.168.61.71:6443/api/v1/namespaces/kube-system/services/monitoring-influxdb/proxy
+[root@node61 ~]# kubectl cluster-info
+Kubernetes master is running at https://192.168.61.61:6443
+Elasticsearch is running at https://192.168.61.61:6443/api/v1/namespaces/kube-system/services/elasticsearch-logging/proxy
+Heapster is running at https://192.168.61.61:6443/api/v1/namespaces/kube-system/services/heapster/proxy
+Kibana is running at https://192.168.61.61:6443/api/v1/namespaces/kube-system/services/kibana-logging/proxy
+KubeDNS is running at https://192.168.61.61:6443/api/v1/namespaces/kube-system/services/kube-dns/proxy
+kubernetes-dashboard is running at https://192.168.61.61:6443/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy
+monitoring-grafana is running at https://192.168.61.61:6443/api/v1/namespaces/kube-system/services/monitoring-grafana/proxy
+monitoring-influxdb is running at https://192.168.61.61:6443/api/v1/namespaces/kube-system/services/monitoring-influxdb/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```

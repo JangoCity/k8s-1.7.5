@@ -9,7 +9,7 @@ metadata:
     kubernetes.io/cluster-service: "true"
     addonmanager.kubernetes.io/mode: Reconcile
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     k8s-app: elasticsearch-logging
     version: v1
